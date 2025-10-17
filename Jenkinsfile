@@ -1,39 +1,46 @@
 pipeline {
     agent any
-    environment {
-        MYSQL_ROOT_PASSWORD = 'root'
-        MYSQL_DATABASE = 'TaskDB'
-        MYSQL_USER = 'springuser'
-        MYSQL_PASSWORD = 'springpass'
-    }
     stages {
+        stage('Checkout') {
+            steps {
+                git branch: 'main', url: 'http://localhost/root/TaskManagement.git', credentialsId: 'gitlab-root-token'
+            }
+        }
+
         stage('Start MySQL') {
             steps {
                 sh '''
-                docker run --name mysql-test -e MYSQL_ROOT_PASSWORD=$MYSQL_ROOT_PASSWORD \
-                -e MYSQL_DATABASE=$MYSQL_DATABASE \
-                -e MYSQL_USER=$MYSQL_USER \
-                -e MYSQL_PASSWORD=$MYSQL_PASSWORD \
-                -p 3307:3306 -d mysql:8
-                sleep 20
+                docker rm -f mysql-test || true
+                docker run --name mysql-test -e MYSQL_ROOT_PASSWORD=root \
+                -e MYSQL_DATABASE=TaskDB -e MYSQL_USER=springuser \
+                -e MYSQL_PASSWORD=springpass -p 3307:3306 -d mysql:8
+                echo "Waiting for MySQL to start..."
+                sleep 25
                 '''
             }
         }
+
         stage('Build') {
             steps {
-                sh './mvnw clean package'
+                sh 'mvn clean package -DskipTests'
             }
         }
+
         stage('Test') {
             steps {
-                sh './mvnw test'
+                sh 'mvn test'
+            }
+        }
+
+        stage('Archive') {
+            steps {
+                archiveArtifacts artifacts: 'target/*.jar', fingerprint: true
             }
         }
     }
     post {
         always {
-            sh 'docker stop mysql-test && docker rm mysql-test || true'
-            archiveArtifacts artifacts: 'target/*.jar', allowEmptyArchive: true
+            sh 'docker rm -f mysql-test || true'
         }
     }
 }
