@@ -14,7 +14,7 @@ pipeline {
                 -e MYSQL_DATABASE=$MYSQL_DATABASE \
                 -e MYSQL_USER=$MYSQL_USER \
                 -e MYSQL_PASSWORD=$MYSQL_PASSWORD \
-                -p 3306:3306 -d mysql:8
+                -p 3307:3306 -d mysql:8
                 sleep 20
                 '''
             }
