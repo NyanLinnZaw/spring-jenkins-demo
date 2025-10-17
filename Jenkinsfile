@@ -9,7 +9,7 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                git branch: 'main', url: 'http://localhost/root/TaskManagement.git'
+                git branch: 'main', url: 'http://localhost/root/TaskManagement.git', credentialsId: 'gitlab-root-token'
             }
         }
 
