@@ -1,46 +1,47 @@
 pipeline {
     agent any
+
+    environment {
+        IMAGE_NAME = "taskmanagement-app"
+        CONTAINER_NAME = "taskmanagement-app"
+    }
+
     stages {
         stage('Checkout') {
             steps {
-                git branch: 'main', url: 'http://localhost/root/TaskManagement.git', credentialsId: 'gitlab-root-token'
+                git branch: 'main', url: 'http://localhost/root/TaskManagement.git'
             }
         }
 
-        stage('Start MySQL') {
-            steps {
-                sh '''
-                docker rm -f mysql-test || true
-                docker run --name mysql-test -e MYSQL_ROOT_PASSWORD=root \
-                -e MYSQL_DATABASE=TaskDB -e MYSQL_USER=springuser \
-                -e MYSQL_PASSWORD=springpass -p 3307:3306 -d mysql:8
-                echo "Waiting for MySQL to start..."
-                sleep 25
-                '''
-            }
-        }
-
-        stage('Build') {
+        stage('Build JAR') {
             steps {
                 sh 'mvn clean package -DskipTests'
             }
         }
 
-        stage('Test') {
+        stage('Build Docker Image') {
             steps {
-                sh 'mvn test || true'
+                sh 'docker build -t ${IMAGE_NAME} .'
             }
         }
 
-        stage('Archive') {
+        stage('Deploy Container') {
             steps {
-                archiveArtifacts artifacts: 'target/*.jar', fingerprint: true
+                sh '''
+                    docker stop ${CONTAINER_NAME} || true
+                    docker rm ${CONTAINER_NAME} || true
+                    docker run -d -p 8081:8081 --name ${CONTAINER_NAME} ${IMAGE_NAME}
+                '''
             }
         }
     }
+
     post {
-        always {
-            sh 'docker rm -f mysql-test || true'
+        success {
+            echo '✅ Deployment successful!'
+        }
+        failure {
+            echo '❌ Deployment failed. Check Jenkins logs.'
         }
     }
 }
