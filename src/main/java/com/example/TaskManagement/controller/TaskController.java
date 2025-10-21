@@ -77,13 +77,13 @@ public class TaskController {
     }
 
     // Delete a task (Admin only)
-//    @PreAuthorize("hasRole('ADMIN')")
-//    @DeleteMapping("/{id}")
-//    public ResponseEntity<?> deleteTask(@PathVariable Long id) {
-//        if (taskService.findById(id).isPresent()) {
-//            taskService.deleteById(id);
-//            return ResponseEntity.ok().build();
-//        }
-//        return ResponseEntity.notFound().build();
-//    }
+    @PreAuthorize("hasRole('ADMIN')")
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> deleteTask(@PathVariable Long id) {
+        if (taskService.findById(id).isPresent()) {
+            taskService.deleteById(id);
+            return ResponseEntity.ok().build();
+        }
+        return ResponseEntity.notFound().build();
+    }
 }
