@@ -1,0 +1,20 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: taskmanagement-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: taskmanagement
+  template:
+    metadata:
+      labels:
+        app: taskmanagement
+    spec:
+      containers:
+        - name: taskmanagement-container
+          image: taskmanagement-app:latest
+          imagePullPolicy: Never   # Important, so it doesn't try to pull from Docker Hub
+          ports:
+            - containerPort: 8080
