@@ -25,32 +25,31 @@ pipeline {
             }
         }
 
-        // ✅ NEW STAGE 1: Load image into Minikube
-        stage('Load Image into Minikube') {
-            steps {
-                sh 'minikube image load ${IMAGE_NAME}:${IMAGE_TAG}'
-            }
-        }
-
-        // ✅ NEW STAGE 2: Deploy to Kubernetes
-        stage('Deploy to Kubernetes') {
-            steps {
-                sh '''
-                    kubectl apply -f ${DEPLOYMENT_FILE}
-                    kubectl apply -f ${SERVICE_FILE}
-                '''
-                }
-            }
-
-//         stage('Deploy Container') {
+//         stage('Load Image into Minikube') {
 //             steps {
-//                 sh '''
-//                     docker stop ${CONTAINER_NAME} || true
-//                     docker rm ${CONTAINER_NAME} || true
-//                     docker run -d -p 8081:8081 --name ${CONTAINER_NAME} ${IMAGE_NAME}
-//                 '''
+//                 sh "minikube image load ${IMAGE_NAME}:${IMAGE_TAG}"
 //             }
 //         }
+//
+//         stage('Deploy to Kubernetes') {
+//             steps {
+//                sh """
+//                    kubectl apply -f ${DEPLOYMENT_FILE}
+//                    kubectl apply -f ${SERVICE_FILE}
+//                """
+//             }
+//         }
+
+
+        stage('Deploy Container') {
+            steps {
+                sh '''
+                    docker stop ${CONTAINER_NAME} || true
+                    docker rm ${CONTAINER_NAME} || true
+                    docker run -d -p 8081:8081 --name ${CONTAINER_NAME} ${IMAGE_NAME}
+                '''
+            }
+        }
     }
 
     post {
