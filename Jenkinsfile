@@ -2,78 +2,62 @@ pipeline {
     agent any
 
     environment {
-        IMAGE_NAME = "taskmanagement-app"
-        CONTAINER_NAME = "task_management_app"
+        COMPOSE_FILE = 'docker-compose.yml'
     }
 
     stages {
         stage('Checkout') {
             steps {
-                git branch: 'main', url: 'http://localhost/root/TaskManagement.git', credentialsId: 'gitlab-root-token'
+                // Pull latest code from Git
+                checkout scm
             }
         }
 
-        stage('Build JAR') {
+        stage('Build App') {
             steps {
+                echo "Building Spring Boot app..."
                 sh 'mvn clean package -DskipTests'
             }
         }
 
-        stage('Build Docker Image') {
+        stage('Clean Docker Resources') {
             steps {
-                sh 'docker build -t ${IMAGE_NAME} .'
-            }
-        }
-
-//         stage('Load Image into Minikube') {
-//             steps {
-//                 sh "minikube image load ${IMAGE_NAME}:${IMAGE_TAG}"
-//             }
-//         }
-//
-//         stage('Deploy to Kubernetes') {
-//             steps {
-//                sh """
-//                    kubectl apply -f ${DEPLOYMENT_FILE}
-//                    kubectl apply -f ${SERVICE_FILE}
-//                """
-//             }
-//         }
-
-
-        stage('Deploy Container') {
-            steps {
+                echo "Cleaning old Docker containers, images, and volumes..."
+                // Stop and remove old containers
                 sh '''
-                    docker stop ${CONTAINER_NAME} || true
-                    docker rm ${CONTAINER_NAME} || true
-                    docker run -d -p 8081:8080 --name ${CONTAINER_NAME} ${IMAGE_NAME}
+                docker ps -aq | xargs -r docker rm -f
+                docker images -f "dangling=true" -q | xargs -r docker rmi -f
+                docker volume ls -qf "dangling=true" | xargs -r docker volume rm
                 '''
             }
         }
 
-// stage('Deploy with Docker Compose') {
-//     steps {
-//         sh '''
-//             echo "🚀 Stopping any existing containers..."
-//             docker compose down
-//
-//             echo "🚀 Starting containers with Docker Compose..."
-//             docker compose up -d
-//
-//             echo "✅ Application and MySQL started!"
-//             echo "🔗 Access your app at http://localhost:8081"
-//         '''
-//     }
-// }
+        stage('Deploy with Docker Compose') {
+            steps {
+                echo "Deploying containers using docker-compose..."
+                // Stop any old containers of this project
+                sh 'docker-compose down --remove-orphans'
+                // Build images and start containers in detached mode
+                sh 'docker-compose up -d --build'
+            }
+        }
 
-     }
+        stage('Verify Deployment') {
+            steps {
+                echo "Listing running containers..."
+                sh 'docker ps'
+                echo "Showing app logs (last 50 lines)..."
+                sh 'docker-compose logs --tail=50 app'
+            }
+        }
+    }
 
     post {
         success {
-            echo '✅ Deployment successful!'
+            echo "✅ Deployment completed successfully!"
         }
         failure {
-            echo '❌ Deployment failed. Check Jenkins logs.'
+            echo "❌ Deployment failed! Check logs above."
         }
     }
 }
