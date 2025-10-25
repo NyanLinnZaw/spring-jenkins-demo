@@ -41,16 +41,31 @@ pipeline {
 //         }
 
 
-        stage('Deploy Container') {
-            steps {
-                sh '''
-                    docker stop ${CONTAINER_NAME} || true
-                    docker rm ${CONTAINER_NAME} || true
-                    docker run -d -p 8081:8081 --name ${CONTAINER_NAME} ${IMAGE_NAME}
-                '''
-            }
-        }
-    }
+//         stage('Deploy Container') {
+//             steps {
+//                 sh '''
+//                     docker stop ${CONTAINER_NAME} || true
+//                     docker rm ${CONTAINER_NAME} || true
+//                     docker run -d -p 8081:8081 --name ${CONTAINER_NAME} ${IMAGE_NAME}
+//                 '''
+//             }
+//         }
+
+                stage('Deploy with Docker Compose') {
+                    steps {
+                        sh '''
+                            echo "🚀 Stopping any existing containers..."
+                            docker-compose -f ${COMPOSE_FILE} down
+
+                            echo "🚀 Starting containers with Docker Compose..."
+                            docker-compose -f ${COMPOSE_FILE} up -d
+
+                            echo "✅ Application and MySQL started!"
+                            echo "🔗 Access app at http://localhost:8081"
+                        '''
+                    }
+                }
+     }
 
     post {
         success {
