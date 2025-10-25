@@ -51,20 +51,21 @@ pipeline {
 //             }
 //         }
 
-                stage('Deploy with Docker Compose') {
-                    steps {
-                        sh '''
-                            echo "🚀 Stopping any existing containers..."
-                            docker-compose -f ${COMPOSE_FILE} down
+stage('Deploy with Docker Compose') {
+    steps {
+        sh '''
+            echo "🚀 Stopping any existing containers..."
+            docker compose down
 
-                            echo "🚀 Starting containers with Docker Compose..."
-                            docker-compose -f ${COMPOSE_FILE} up -d
+            echo "🚀 Starting containers with Docker Compose..."
+            docker compose up -d
 
-                            echo "✅ Application and MySQL started!"
-                            echo "🔗 Access app at http://localhost:8081"
-                        '''
-                    }
-                }
+            echo "✅ Application and MySQL started!"
+            echo "🔗 Access your app at http://localhost:8081"
+        '''
+    }
+}
+
      }
 
     post {
