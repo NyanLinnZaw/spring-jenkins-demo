@@ -8,7 +8,6 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                // Pull latest code from Git
                 checkout scm
             }
         }
@@ -23,10 +22,14 @@ pipeline {
         stage('Clean Docker Resources') {
             steps {
                 echo "Cleaning old Docker containers, images, and volumes..."
-                // Stop and remove old containers
                 sh '''
+                # Stop and remove all containers
                 docker ps -aq | xargs -r docker rm -f
+
+                # Remove dangling images
                 docker images -f "dangling=true" -q | xargs -r docker rmi -f
+
+                # Remove dangling volumes
                 docker volume ls -qf "dangling=true" | xargs -r docker volume rm
                 '''
             }
@@ -34,11 +37,10 @@ pipeline {
 
         stage('Deploy with Docker Compose') {
             steps {
-                echo "Deploying containers using docker-compose..."
-                // Stop any old containers of this project
-                sh 'docker-compose down --remove-orphans'
-                // Build images and start containers in detached mode
-                sh 'docker-compose up -d --build'
+                echo "Deploying containers using docker compose..."
+                // Stop old containers, remove orphans, and rebuild
+                sh 'docker compose down --remove-orphans'
+                sh 'docker compose up -d --build'
             }
         }
 
@@ -46,8 +48,8 @@ pipeline {
             steps {
                 echo "Listing running containers..."
                 sh 'docker ps'
-                echo "Showing app logs (last 50 lines)..."
-                sh 'docker-compose logs --tail=50 app'
+                echo "Showing last 50 lines of app logs..."
+                sh 'docker compose logs --tail=50 app'
             }
         }
     }
