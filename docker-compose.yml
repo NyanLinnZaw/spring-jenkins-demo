@@ -37,7 +37,7 @@ services:
         external_url 'http://localhost:8181'
         gitlab_rails['gitlab_shell_ssh_port'] = 2224
     ports:
-      - "8181:8181"   # GitLab web UI
+      - "8181:80"   # GitLab web UI
       - "2224:22"     # GitLab SSH for git push/pull
     networks:
       - tasknet
