@@ -27,24 +27,24 @@ services:
     networks:
       - tasknet
 
-  gitlab:
-    image: gitlab/gitlab-ce:latest
-    container_name: gitlab
-    restart: always
-    hostname: gitlab.local
-    environment:
-      GITLAB_OMNIBUS_CONFIG: |
-        external_url 'http://localhost:8181'
-        gitlab_rails['gitlab_shell_ssh_port'] = 2224
-    ports:
-      - "8181:80"   # GitLab web UI
-      - "2224:22"     # GitLab SSH for git push/pull
-    networks:
-      - tasknet
-    volumes:
-      - gitlab-config:/etc/gitlab
-      - gitlab-logs:/var/log/gitlab
-      - gitlab-data:/var/opt/gitlab
+#  gitlab:
+#    image: gitlab/gitlab-ce:latest
+#    container_name: gitlab
+#    restart: always
+#    hostname: gitlab.local
+#    environment:
+#      GITLAB_OMNIBUS_CONFIG: |
+#        external_url 'http://localhost:8181'
+#        gitlab_rails['gitlab_shell_ssh_port'] = 2224
+#    ports:
+#      - "8181:80"   # GitLab web UI
+#      - "2224:22"     # GitLab SSH for git push/pull
+#    networks:
+#      - tasknet
+#    volumes:
+#      - gitlab-config:/etc/gitlab
+#      - gitlab-logs:/var/log/gitlab
+#      - gitlab-data:/var/opt/gitlab
 
 #  jenkins:
 #    image: jenkins/jenkins:lts
